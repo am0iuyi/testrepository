@@ -30,18 +30,6 @@ def index(request: HttpRequest):
 
     return render(request, "index.html",{"result":result,})
 
-def profile(request: HttpRequest):
-    if request.POST:
-        email = request.POST.get('email')
-        select = request.POST.get('select')
-        gender = request.POST.get('gender')
-
-        return render(request, "profile.html", {
-            "email": email,
-            "select": select,
-            "gender": gender,
-        })
-
 
 def test(request: HttpRequest):
     print(*Game.objects.all())

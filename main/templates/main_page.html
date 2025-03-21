@@ -1,10 +1,363 @@
-<!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо Фортуны</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f0e1; /* Светлый бежевый фон */
+            color: #1d3557; /* Темно-синий текст */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        header {
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #1d3557; /* Темно-синий */
+        }
+
+        p {
+            color: #457b9d; /* Средне-синий */
+            margin-bottom: 20px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 350px;
+            height: 350px;
+            margin: 0 auto 30px;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            border: 10px solid #1d3557; /* Темно-синий бордюр */
+            transition: transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            transform: rotate(0deg);
+            box-shadow: 0 0 20px rgba(29, 53, 87, 0.3);
+            background-color: white;
+            overflow: hidden;
+        }
+
+        .section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            left: 50%;
+            top: 50%;
+            transform-origin: 0% 0%;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid #1d3557; /* Темно-синий указатель */
+            z-index: 10;
+        }
+
+        .btn {
+            background-color: #1d3557; /* Темно-синий фон */
+            color: #f5f0e1; /* Светлый бежевый текст */
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 30px;
+            margin: 10px;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 8px rgba(29, 53, 87, 0.2);
+        }
+
+        .btn:hover {
+            background-color: #2a4a79; /* Немного светлее темно-синего */
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 36px;
+            color: #1d3557; /* Темно-синий текст */
+        }
+
+        .stats {
+            background-color: #e9e1d3; /* Чуть темнее бежевый */
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(29, 53, 87, 0.1);
+        }
+
+        .footer {
+            margin-top: 40px;
+            color: #457b9d; /* Средне-синий */
+            font-size: 14px;
+        }
+
+        .prize-text {
+            position: absolute;
+            font-size: 11px;
+            color: white;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+        white-space: nowrap;
+            transform-origin: 0 0;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1>Колесо Фортуны</h1>
+            <p>Испытайте свою удачу! Нажмите кнопку "Крутить", чтобы запустить колесо.</p>
+        </header>
 
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <div class="wheel" id="wheel"></div>
+        </div>
+
+        <div class="result" id="result"></div>
+
+        <button class="btn" id="spin-btn">Крутить</button>
+        <button class="btn" id="reset-btn">Сбросить</button>
+
+        <div class="stats" id="stats">
+            Вращений: <span id="spin-count">0</span><br>
+            Последний выигрыш: <span id="last-win">-</span>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 Колесо Фортуны. Все права защищены.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Настройка колеса
+            const wheel = document.getElementById('wheel');
+            const spinBtn = document.getElementById('spin-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const result = document.getElementById('result');
+            const spinCount = document.getElementById('spin-count');
+            const lastWin = document.getElementById('last-win');
+
+            // Секции колеса и их призы (теперь 12 секций)
+            const sections = [
+                { prize: '100 очков', color: '#457b9d' }, // Средне-синий
+                { prize: '200 очков', color: '#a8dadc' }, // Светло-синий
+                { prize: '300 очков', color: '#e9e1d3' }, // Темно-бежевый
+                { prize: '500 очков', color: '#1d3557' }, // Темно-синий
+                { prize: '1000 очков', color: '#457b9d' }, // Средне-синий
+                { prize: 'Бонусный ход', color: '#a8dadc' }, // Светло-синий
+                { prize: '50 очков', color: '#e9e1d3' }, // Темно-бежевый
+                { prize: 'Супер приз!', color: '#1d3557' }, // Темно-синий
+                { prize: '150 очков', color: '#457b9d' }, // Средне-синий
+                { prize: '250 очков', color: '#a8dadc' }, // Светло-синий
+                { prize: 'Потеря хода', color: '#e9e1d3' }, // Темно-бежевый
+                { prize: '400 очков', color: '#1d3557' } // Темно-синий
+            ];
+
+            // Полностью переработанный подход к созданию секций колеса с использованием div вместо border
+            const sectionAngle = 360 / sections.length;
+            const radius = 165; // Примерный радиус колеса внутри border
+
+            sections.forEach((section, index) => {
+                const sectionElement = document.createElement('div');
+                sectionElement.className = 'section';
+
+                // Устанавливаем цвет и поворот сектора
+                sectionElement.style.backgroundColor = section.color;
+                sectionElement.style.transform = rotate(${index * sectionAngle}deg);
+
+                // Создаем элемент для клиппинга сектора в форме пирога
+                const clipAngle = sectionAngle * Math.PI / 180; // Угол в радианах
+                const clipPathValue = polygon(0 0, ${Math.cos(clipAngle) * 100}% ${Math.sin(clipAngle) * 100}%, 0 0);
+                sectionElement.style.clipPath = clipPathValue;
+
+                wheel.appendChild(sectionElement);
+
+                // Добавляем текст приза
+                const textElement = document.createElement('div');
+                textElement.className = 'prize-text';
+                textElement.textContent = section.prize;
+        // Позиционируем текст в середине сектора
+                const textAngle = index * sectionAngle + sectionAngle / 2;
+                const textRadians = textAngle * Math.PI / 180;
+                const textDistance = radius * 0.6; // Располагаем текст примерно на 60% от центра к краю
+
+                const textX = Math.cos(textRadians) * textDistance;
+                const textY = Math.sin(textRadians) * textDistance;
+
+                textElement.style.left = calc(50% + ${textX}px);
+                textElement.style.top = calc(50% + ${textY}px);
+                textElement.style.transform = translate(-50%, -50%) rotate(${textAngle + 90}deg);
+
+                wheel.appendChild(textElement);
+            });
+
+            // Создаем еще один подход к колесу с использованием SVG
+            wheel.innerHTML = ''; // Очищаем предыдущее содержимое
+
+            // Создаем SVG элемент
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("viewBox", "0 0 200 200");
+            svg.style.width = "100%";
+            svg.style.height = "100%";
+
+            // Создаем сегменты колеса
+            const centerX = 100;
+            const centerY = 100;
+            const radius = 98; // Чуть меньше, чем viewBox, чтобы вписаться в круг
+
+            sections.forEach((section, index) => {
+                const startAngle = index * sectionAngle;
+                const endAngle = (index + 1) * sectionAngle;
+
+                // Конвертируем углы в радианы
+                const startRadians = (startAngle - 90) * Math.PI / 180; // -90 чтобы начинать сверху
+                const endRadians = (endAngle - 90) * Math.PI / 180;
+
+                // Вычисляем координаты
+                const x1 = centerX + radius * Math.cos(startRadians);
+                const y1 = centerY + radius * Math.sin(startRadians);
+                const x2 = centerX + radius * Math.cos(endRadians);
+                const y2 = centerY + radius * Math.sin(endRadians);
+
+                // Создаем путь для сектора
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                const largeArcFlag = endAngle - startAngle <= 180 ? 0 : 1;
+
+                const d = [
+                    M ${centerX},${centerY},
+                    L ${x1},${y1},
+                    A ${radius},${radius} 0 ${largeArcFlag} 1 ${x2},${y2},
+                    'Z' // Замыкаем путь
+                ].join(' ');
+
+                path.setAttribute("d", d);
+                path.setAttribute("fill", section.color);
+                path.setAttribute("stroke", "white");
+                path.setAttribute("stroke-width", "0.5");
+
+                svg.appendChild(path);
+
+                // Добавляем текст
+                const textAngle = (startAngle + endAngle) / 2 - 90; // -90 чтобы начинать сверху
+                const textRadians = textAngle * Math.PI / 180;
+                const textDistance = radius * 0.7; // 70% от центра к краю
+
+                const textX = centerX + textDistance * Math.cos(textRadians);
+                const textY = centerY + textDistance * Math.sin(textRadians);
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", textX);
+                text.setAttribute("y", textY);
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("alignment-baseline", "middle");
+                text.setAttribute("fill", "white");
+        text.setAttribute("font-size", "7");
+                text.setAttribute("font-weight", "bold");
+                text.setAttribute("transform", rotate(${textAngle + 90} ${textX} ${textY}));
+                text.textContent = section.prize;
+
+                // Добавляем тень для текста
+                text.setAttribute("filter", "drop-shadow(1px 1px 1px rgba(0,0,0,0.5))");
+
+                svg.appendChild(text);
+            });
+
+            wheel.appendChild(svg);
+
+            let spinning = false;
+            let spins = 0;
+            let currentRotation = 0;
+
+            // Функция вращения колеса
+            spinBtn.addEventListener('click', function() {
+                if (spinning) return;
+
+                spinning = true;
+                spins++;
+                spinCount.textContent = spins;
+
+                // Определяем случайный угол вращения
+                const spinAngle = Math.floor(Math.random() * 360) + 3600; // Минимум 10 полных оборотов + случайный угол
+                const totalRotation = currentRotation + spinAngle;
+
+                // Запускаем анимацию вращения
+                wheel.style.transition = 'transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+                wheel.style.transform = rotate(${totalRotation}deg);
+
+                // Вычисляем результат
+                setTimeout(function() {
+                    const finalAngle = totalRotation % 360;
+                    const sectionIndex = Math.floor((360 - (finalAngle % 360)) / sectionAngle) % sections.length;
+                    const winningPrize = sections[sectionIndex].prize;
+
+                    result.textContent = Вы выиграли: ${winningPrize}!;
+                    lastWin.textContent = winningPrize;
+
+                    currentRotation = totalRotation;
+                    spinning = false;
+                }, 5000);
+            });
+
+            // Сброс игры
+            resetBtn.addEventListener('click', function() {
+                if (spinning) return;
+
+                spins = 0;
+                spinCount.textContent = spins;
+                lastWin.textContent = '-';
+                result.textContent = '';
+
+                // Сбрасываем вращение без анимации
+                wheel.style.transition = 'none';
+                wheel.style.transform = 'rotate(0deg)';
+                currentRotation = 0;
+
+                // Небольшая пауза перед включением анимации снова
+                setTimeout(() => {
+                    wheel.style.transition = 'transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+                }, 10);
+            });
+        });
+    </script>
 </body>
 </html>
