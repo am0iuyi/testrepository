@@ -10,6 +10,7 @@
             --dark-blue: #2980b9;
             --beige: #f5e7d3;
             --dark-beige: #e6d2b5;
+            --tan: #A52A2A
         }
 
         body {
@@ -75,7 +76,7 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            transition: transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            transition: transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
             transform: rotate(0deg);
         }
 
@@ -91,7 +92,7 @@
             top: 0;
         }
 
-        .section-1 { transform: rotate(0deg); border-top-color: var(--blue); }
+        .section-1 { transform: rotate(0deg); border-top-color: var(--tan); }
         .section-2 { transform: rotate(60deg); border-top-color: var(--dark-beige); }
         .section-3 { transform: rotate(120deg); border-top-color: var(--blue); }
         .section-4 { transform: rotate(180deg); border-top-color: var(--dark-beige); }
@@ -198,11 +199,11 @@
 
         // Варианты призов
         const prizes = [
-            "100 монет",
-            "Бонусные очки",
-            "Скидка 25%",
-            "Супер приз!",
-            "50 монет",
+            "Вы выиграли: 5 монет",
+            "Вы выиграли: 1 монету",
+            "Вы выиграли: 1 монету",
+            "Супер приз! 10 монет",
+            "Попробуйте снова",
             "Попробуйте снова"
         ];
 
@@ -218,15 +219,16 @@
             const rotations = 2 + Math.random() * 3;
             const degrees = rotations * 360 + Math.floor(Math.random() * 360);
 
-            wheel.style.transform = rotate(${degrees}deg);
+
+            wheel.style.transform = `rotate(${degrees}deg)`;
 
             setTimeout(() => {
                 // Определение сектора после остановки
                 const normalizedDegree = degrees % 360;
                 const sectionIndex = Math.floor(normalizedDegree / 60);
-                result.textContent = Вы выиграли: ${prizes[sectionIndex]}!;
+                result.textContent = `${prizes[sectionIndex]}!`;
                 canSpin = true;
-            }, 4000);
+            }, 5000);
         });
 
         profileBtn.addEventListener('click', () => {
