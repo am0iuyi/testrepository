@@ -160,7 +160,11 @@
     <header>
         <div class="logo">Колесо Фортуны</div>
         <div class="nav-buttons">
-            <button class="btn" id="profile-btn">Профиль</button>
+            {% if user.is_authenticated %}
+                <a class="btn btn-primary" href="/register">Профиль</a>
+            {% else %}
+            <a href=""></a>
+            {% endif %}
             <button class="btn" id="shop-btn">Магазин</button>
         </div>
     </header>
