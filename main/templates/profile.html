@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - {{ user.username }}</title>
+    <style>
+        /* CSS стили */
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .avatar-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+        }
+
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #4a90e2;
+        }
+
+        .username {
+            font-size: 28px;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .member-since {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            min-width: 120px;
+            margin: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #4a90e2;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .recent-games {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .recent-games h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .games-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .game-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .game-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .game-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .game-result {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .game-result.win {
+            color: #27ae60;
+        }
+
+        .game-result.lose {
+            color: #e74c3c;
+        }
+
+        .game-result.draw {
+            color: #f39c12;
+        }
+
+        .game-date {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .no-games {
+            color: #7f8c8d;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .stats-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .stat-card {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="avatar-container">
+                {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" alt="Аватар" class="profile-avatar">
+                {% else %}
+                    <img src="/static/images/default_avatar.png" alt="Аватар" class="profile-avatar">
+                {% endif %}
+            </div>
+            <h1 class="username">{{ user.username }}</h1>
+            <p class="member-since">Участник с {{ user.date_joined|date:"F Y" }}</p>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value">{{ games_played }}</div>
+                <div class="stat-label">Игр сыграно</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ games_won }}</div>
+                <div class="stat-label">Побед</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ win_rate }}%</div>
+                <div class="stat-label">Процент побед</div>
+            </div>
+        </div>
+
+        <div class="recent-games">
+            <h2>Последние игры</h2>
+            <div class="games-list" id="games-list">
+                {% for game in recent_games %}
+                <div class="game-card" data-game-id="{{ game.id }}">
+                    <div class="game-title">{{ game.game_type }}</div>
+                    <div class="game-result {% if game.result == 'win' %}win{% elif game.result == 'lose' %}lose{% else %}draw{% endif %}">
+                        {{ game.get_result_display }}
+                    </div>
+                    <div class="game-date">{{ game.played_at|date:"d.m.Y H:i" }}</div>
+                </div>
+                {% empty %}
+                <p class="no-games">Пока нет сыгранных игр</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript код
+        document.addEventListener('DOMContentLoaded', function() {
+            // Обработка кликов по карточкам игр
+            const gameCards = document.querySelectorAll('.game-card');
+            
+            gameCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const gameId = this.getAttribute('data-game-id');
+                    if (gameId) {
+                        // Здесь можно реализовать переход к детальной странице игры
+                        console.log('Переход к игре с ID:', gameId);
+                        // window.location.href = `/games/${gameId}/`;
+                    }
+                });
+            });
+
+            // Анимация при загрузке страницы
+            animateStats();
+            
+            function animateStats() {
+                const statValues = document.querySelectorAll('.stat-value');
+                statValues.forEach((stat, index) => {
+                    // Небольшая задержка для последовательной анимации
+                    setTimeout(() => {
+                        stat.style.opacity = '1';
+                        stat.style.transform = 'translateY(0)';
+                    }, 200 * index);
+                });
+            }
+
+            // Инициализация начальных стилей для анимации
+            document.querySelectorAll('.stat-value').forEach(stat => {
+                stat.style.opacity = '0';
+                stat.style.transform = 'translateY(20px)';
+                stat.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            });
+        });
+    </script>
+</body>
+</html>
+{% endblock %}
